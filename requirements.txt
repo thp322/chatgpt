@@ -1,3 +1,5 @@
 streamlit
 openai
-pandas 
+pandas
+PyPDF2
+openpyxl
