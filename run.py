@@ -3,6 +3,10 @@
 Harper
 cd "D:/pythonProject/接单/2025.7.23 文献摘录"
 streamlit run run.py
+
+git add .
+git commit -m "Fix deployment issues"
+git push
 '''
 
 import openai
@@ -119,7 +123,7 @@ def truncate_text_for_analysis(text, max_chars=3000):
     
     return truncated_text
 
-def extract_fields(text):
+def extract_fields(text, api_key=None):
     # 自动设置代理
     http_proxy, https_proxy = set_proxy_environment()
     
@@ -127,12 +131,14 @@ def extract_fields(text):
     if http_proxy:
         st.info(f"使用代理: {http_proxy}")
     
-    # 从环境变量获取API配置
-    api_key = os.environ.get('OPENAI_API_KEY')
+    # 获取API配置：优先使用手动输入的API密钥，其次使用环境变量
+    if not api_key:
+        api_key = os.environ.get('OPENAI_API_KEY')
+    
     base_url = os.environ.get('OPENAI_BASE_URL', "https://api.openai.com/v1")
     
     if not api_key:
-        st.error("请设置OPENAI_API_KEY环境变量")
+        st.error("请设置OpenAI API密钥")
         return None
     
     client = OpenAI(api_key=api_key, base_url=base_url)
@@ -272,6 +278,92 @@ hide_menu_style = """
         """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 st.title("📄 文献智能摘录助手")
+
+# API密钥设置区域
+st.subheader("🔑 API密钥设置")
+with st.expander("⚙️ 配置OpenAI API密钥", expanded=True):
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        # 手动输入API密钥
+        api_key_input = st.text_input(
+            "OpenAI API密钥",
+            type="password",
+            placeholder="sk-...",
+            value=st.session_state.get('saved_api_key', ''),
+            help="请输入您的OpenAI API密钥。如果没有设置环境变量，请在此处输入。"
+        )
+        
+        # 检查API密钥格式
+        if api_key_input and not api_key_input.startswith("sk-"):
+            st.warning("⚠️ API密钥格式可能不正确，通常以'sk-'开头")
+        
+        # 显示API密钥状态
+        current_key = api_key_input or st.session_state.get('saved_api_key') or os.environ.get('OPENAI_API_KEY')
+        if current_key:
+            if api_key_input:
+                st.success("✅ 使用手动输入的API密钥")
+            elif st.session_state.get('saved_api_key'):
+                st.success("✅ 使用保存的API密钥")
+            else:
+                st.success("✅ 使用环境变量中的API密钥")
+            
+            # 显示部分密钥用于确认
+            masked_key = current_key[:8] + "..." + current_key[-4:] if len(current_key) > 12 else "***"
+            st.info(f"密钥: {masked_key}")
+        else:
+            st.warning("⚠️ 请设置API密钥以使用文献分析功能")
+    
+    with col2:
+        # API密钥来源说明
+        st.markdown("""
+        **API密钥来源：**
+        1. 手动输入（最高优先级）
+        2. 保存的密钥（会话中）
+        3. 环境变量
+        
+        **获取API密钥：**
+        - 访问 [OpenAI官网](https://platform.openai.com/api-keys)
+        - 创建新的API密钥
+        - 复制密钥（以sk-开头）
+        """)
+        
+        # API密钥管理
+        col_test, col_save, col_clear = st.columns(3)
+        
+        with col_test:
+            # 测试API连接按钮
+            if st.button("🔍 测试连接"):
+                test_key = api_key_input or st.session_state.get('saved_api_key') or os.environ.get('OPENAI_API_KEY')
+                if test_key:
+                    try:
+                        client = OpenAI(api_key=test_key)
+                        response = client.models.list()
+                        st.success("✅ API连接成功！")
+                    except Exception as e:
+                        st.error(f"❌ API连接失败: {str(e)}")
+                else:
+                    st.error("请先输入API密钥")
+        
+        with col_save:
+            # 保存API密钥到session state
+            if st.button("💾 保存密钥"):
+                if api_key_input:
+                    st.session_state.saved_api_key = api_key_input
+                    st.success("✅ API密钥已保存到会话中")
+                else:
+                    st.warning("请先输入API密钥")
+        
+        with col_clear:
+            # 清除保存的API密钥
+            if st.button("🗑️ 清除密钥"):
+                if 'saved_api_key' in st.session_state:
+                    del st.session_state.saved_api_key
+                st.success("✅ 已清除保存的API密钥")
+        
+        # 显示保存的API密钥状态
+        if 'saved_api_key' in st.session_state:
+            st.info("💾 已保存API密钥到会话中")
 
 # 代理检测和配置
 with st.expander("🔧 代理设置"):
@@ -450,8 +542,14 @@ if uploaded_file is not None:
         
         # 提取文献信息按钮
         if st.button("🔍 提取文献信息"):
+            # 检查API密钥（优先级：手动输入 > session state > 环境变量）
+            current_api_key = api_key_input or st.session_state.get('saved_api_key') or os.environ.get('OPENAI_API_KEY')
+            if not current_api_key:
+                st.error("❌ 请先设置OpenAI API密钥")
+                st.stop()
+            
             with st.spinner("正在调用 ChatGPT 进行提取文章信息..."):
-                result = extract_fields(pdf_text)
+                result = extract_fields(pdf_text, current_api_key)
                 
                 new_id = len(df) + 1
                 result["序号"] = new_id

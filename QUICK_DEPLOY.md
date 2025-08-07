@@ -48,13 +48,20 @@ git push -u origin main
    - **Main file path**: `run.py`
    - **Python version**: 3.9
 
-### 3. 环境变量设置
+### 3. 环境变量设置（可选）
 
+**方式1：手动输入（推荐）**
+- 部署后直接在应用界面输入API密钥
+- 无需预先设置环境变量
+- 支持保存到会话中
+
+**方式2：环境变量设置**
 在Streamlit Cloud的 "Advanced settings" 中添加：
 
-```
-OPENAI_API_KEY=sk-your-actual-api-key-here
-OPENAI_BASE_URL=https://api.openai.com/v1
+```toml
+[secrets]
+OPENAI_API_KEY = "sk-your-actual-api-key-here"
+OPENAI_BASE_URL = "https://api.openai.com/v1"
 ```
 
 ### 4. 部署配置

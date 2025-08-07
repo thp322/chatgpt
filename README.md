@@ -30,16 +30,34 @@ cd chatgpt
 pip install -r requirements.txt
 ```
 
-3. 设置环境变量
-```bash
-export OPENAI_API_KEY="your-api-key-here"
-export OPENAI_BASE_URL="https://api.openai.com/v1"  # 可选，默认使用OpenAI官方API
-```
-
-4. 运行应用
+3. 运行应用
 ```bash
 streamlit run run.py
 ```
+
+4. 设置API密钥
+   - 在应用界面中点击 "⚙️ 配置OpenAI API密钥"
+   - 输入您的OpenAI API密钥
+   - 点击 "🔍 测试连接" 验证API密钥
+   - 可选择 "💾 保存密钥" 保存到会话中
+
+### API密钥设置方式
+
+**方式1：手动输入（推荐）**
+- 在应用界面直接输入API密钥
+- 支持保存到会话中，无需重复输入
+- 优先级最高
+
+**方式2：环境变量**
+```bash
+export OPENAI_API_KEY="your-api-key-here"
+export OPENAI_BASE_URL="https://api.openai.com/v1"
+```
+
+**获取API密钥：**
+- 访问 [OpenAI官网](https://platform.openai.com/api-keys)
+- 创建新的API密钥
+- 复制密钥（以sk-开头）
 
 ## Streamlit Cloud 部署
 
