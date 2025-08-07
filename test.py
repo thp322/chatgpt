@@ -2,10 +2,15 @@ import openai
 import os
 
 def test_api():
+    # 从环境变量获取API密钥
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if not api_key:
+        print("请设置OPENAI_API_KEY环境变量")
+        return
+    
     os.environ["http_proxy"] = "http://127.0.0.1:10809"
     os.environ["https_proxy"] = "http://127.0.0.1:10809"
-    client = openai.OpenAI(
-        api_key="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")
+    client = openai.OpenAI(api_key=api_key)
     try:
         response = client.models.list()
         print("OpenAI API 连接成功！")
@@ -19,10 +24,17 @@ def test_api():
 
 def Request():
     import requests
-    url = "https://api.poixe.com/v1/chat/completions"
-    headers = {"Content-Type": "application/json", "Authorization": "sk-WRFlV3D27txa663eVfhBYpYp5fUmJW5zfMara43a8Qjf23mi"}
+    # 从环境变量获取API密钥
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if not api_key:
+        print("请设置OPENAI_API_KEY环境变量")
+        return
+    
+    base_url = os.environ.get('OPENAI_BASE_URL', 'https://api.openai.com/v1')
+    url = f"{base_url}/chat/completions"
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
     data = {
-        "model": "claude-3-5-haiku-20241022:free",
+        "model": "gpt-4",
         "messages": [
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": "Hello!"},
@@ -36,9 +48,17 @@ def Request():
 
 def CDK():
     from openai import OpenAI
-    client = OpenAI(api_key="sk-WRFlV3D27txa663eVfhBYpYp5fUmJW5zfMara43a8Qjf23mi", base_url="https://api.poixe.com/v1")
+    # 从环境变量获取API密钥
+    api_key = os.environ.get('OPENAI_API_KEY')
+    base_url = os.environ.get('OPENAI_BASE_URL', 'https://api.openai.com/v1')
+    
+    if not api_key:
+        print("请设置OPENAI_API_KEY环境变量")
+        return
+    
+    client = OpenAI(api_key=api_key, base_url=base_url)
     completion = client.chat.completions.create(
-        model="claude-3-5-haiku-20241022:free",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": "Hello!"},
@@ -50,7 +70,16 @@ def test_api_cdk():
     os.environ["http_proxy"] = "http://127.0.0.1:10809"
     os.environ["https_proxy"] = "http://127.0.0.1:10809"
     from openai import OpenAI
-    client = OpenAI(api_key="sk-WRFlV3D27txa663eVfhBYpYp5fUmJW5zfMara43a8Qjf23mi", base_url="https://api.poixe.com/v1")
+    
+    # 从环境变量获取API密钥
+    api_key = os.environ.get('OPENAI_API_KEY')
+    base_url = os.environ.get('OPENAI_BASE_URL', 'https://api.openai.com/v1')
+    
+    if not api_key:
+        print("请设置OPENAI_API_KEY环境变量")
+        return
+    
+    client = OpenAI(api_key=api_key, base_url=base_url)
     try:
         response = client.models.list()
         print("OpenAI API 连接成功！")
